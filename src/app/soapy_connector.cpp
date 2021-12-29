@@ -130,7 +130,8 @@ int SoapyConnector::read() {
 
     SoapySDR::Stream* stream;
     try {
-        stream = dev->setupStream(SOAPY_SDR_RX, format, std::vector<size_t>{channel});
+        std::map<std::string, std::string> rargs { {"remote:prot", "tcp"} };
+        stream = dev->setupStream(SOAPY_SDR_RX, format, std::vector<size_t>{channel}, rargs);
     } catch (const std::exception& e) {
         std::cerr << e.what() << "\n";
         return 10;
@@ -155,6 +156,8 @@ int SoapyConnector::read() {
             // timeout should not break the read loop.
             // TODO or should they? I tried, but airspyhf devices will end up here on sample rate changes.
             std::cerr << "WARNING: SoapySDR::Device::readStream timeout!\n";
+        } else if (samples_read == 0) {
+            // do nothing wait for stream to start
         } else {
             // other errors should break the read loop.
             std::cerr << "ERROR: Soapy error " << samples_read << "\n";
